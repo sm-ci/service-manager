@@ -7,6 +7,7 @@ addons:
   postgresql: "9.6"
 
 install:
+  - find . -type f -exec sed -i 's/Peripli\/service-manager/sm-ci\/service-manager/g' {} +
   - make prepare
 
 services:
