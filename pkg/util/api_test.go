@@ -285,13 +285,21 @@ var _ = Describe("Utils test", func() {
 		})
 	})
 
-	Describe("ValidateJsonContentType", func() {
+	Describe("ValidateJSONContentType", func() {
 		It("returns with no error if content-type is application/json", func() {
-			err := util.ValidateJsonContentType("application/json")
+			err := util.ValidateJSONContentType("application/json")
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("returns with no error if content-type is capitalized APPLICATION/JSON", func() {
+			err := util.ValidateJSONContentType("APPLICATION/JSON")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		It("returns error if content-type is not application/json", func() {
-			err := util.ValidateJsonContentType("application/xml")
+			err := util.ValidateJSONContentType("application/xml")
+			validateHTTPErrorOccurred(err, http.StatusBadRequest)
+		})
+		It("returns error if content-type is capitalized APPLICATION/XML", func() {
+			err := util.ValidateJSONContentType("APPLICATION/XML")
 			validateHTTPErrorOccurred(err, http.StatusBadRequest)
 		})
 	})

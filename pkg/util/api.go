@@ -69,7 +69,7 @@ func RequestBodyToBytes(request *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	if strings.EqualFold(contentType, jsonContentType) {
+	if contentType == jsonContentType {
 		if err := validJson(body); err != nil {
 			return nil, &HTTPError{
 				ErrorType:   "BadRequest",
@@ -175,16 +175,39 @@ func BytesToObject(bytes []byte, object interface{}) error {
 	return nil
 }
 
-func ValidateJsonContentType(contentTypeHeader string) error {
-	mimeType, _, err := mime.ParseMediaType(contentTypeHeader)
-	if err != nil || !strings.EqualFold(mimeType, jsonContentType) {
+func ValidateJSONContentType(contentTypeHeader string) error {
+	isJSON, err := IsJSONContentType(contentTypeHeader)
+	if err != nil {
+		return err
+	}
+	if !isJSON {
 		return &HTTPError{
 			ErrorType:   "BadRequest",
-			Description: fmt.Sprintf("unsupported media type: %s, expecting %s", contentTypeHeader, jsonContentType),
+			Description: fmt.Sprintf("unsupported media type"),
 			StatusCode:  http.StatusBadRequest,
 		}
 	}
 	return nil
+}
+
+func IsJSONContentType(contentTypeHeader string) (bool, error) {
+	if len(contentTypeHeader) == 0 {
+		return true, nil
+	}
+
+	mimeType, _, err := mime.ParseMediaType(contentTypeHeader)
+	if err != nil {
+		return false, &HTTPError{
+			ErrorType:   "BadRequest",
+			Description: fmt.Sprintf("unsupported media type"),
+			StatusCode:  http.StatusBadRequest,
+		}
+	}
+
+	if mimeType == jsonContentType {
+		return true, nil
+	}
+	return false, nil
 }
 
 // unmarshal unmarshals the specified []byte into the provided value and returns an HttpError in unmarshaling fails

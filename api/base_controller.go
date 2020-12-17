@@ -151,7 +151,7 @@ func (c *BaseController) Routes() []web.Route {
 
 // CreateObject handles the creation of a new object
 func (c *BaseController) CreateObject(r *web.Request) (*web.Response, error) {
-	if err := util.ValidateJsonContentType(r.Header.Get("Content-Type")); err != nil {
+	if err := util.ValidateJSONContentType(r.Header.Get("Content-Type")); err != nil {
 		return nil, err
 	}
 
@@ -305,12 +305,19 @@ func (c *BaseController) DeleteSingleObject(r *web.Request) (*web.Response, erro
 			return util.NewLocationResponse(concurrentOp.GetID(), resourceID, c.resourceBaseURL)
 		}
 	}
+
+	isForce := r.URL.Query().Get(web.QueryParamForce) == "true"
+	labels := types.Labels{}
+	if isForce {
+		labels["force"] = []string{"true"}
+	}
+
 	operation := &types.Operation{
 		Base: types.Base{
 			ID:        UUID.String(),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
-			Labels:    make(map[string][]string),
+			Labels:    labels,
 			Ready:     true,
 		},
 		Type:          types.DELETE,
@@ -461,7 +468,7 @@ func (c *BaseController) ListObjects(r *web.Request) (*web.Response, error) {
 
 // PatchObject handles the update of the object with the id specified in the request
 func (c *BaseController) PatchObject(r *web.Request) (*web.Response, error) {
-	if err := util.ValidateJsonContentType(r.Header.Get("Content-Type")); err != nil {
+	if err := util.ValidateJSONContentType(r.Header.Get("Content-Type")); err != nil {
 		return nil, err
 	}
 
